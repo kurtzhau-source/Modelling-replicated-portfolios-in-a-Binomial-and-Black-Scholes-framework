@@ -1,0 +1,100 @@
+import math
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.stats import norm 
+import seaborn as sns
+from numpy import random
+
+def bin_call_price(n,vol,S,k,r):
+
+# n : number of timesteps in time t 
+# u : upwards weight
+# d : downwards weight
+# S : stock price 
+# r : interest rate 
+
+
+#call cost
+    call_cost = 0
+
+#discount the interest rate for the current time 
+    r0 = 1+ r/n  
+#using Cox's proposals calculate u and d based off of vol 
+
+    u = np.exp(vol*(np.sqrt(1/n)))
+    d = np.exp(-1*vol*(np.sqrt(1/n)))
+
+#check for no arbitrage constraints
+    if 0 < d < r0 < u:
+    #calculate probability weights 
+        pi = (r0 - d)/(u-d)
+#compute sum 
+        for j in range(0,n+1): 
+            call_cost  = call_cost + math.comb(n,j)*(pi**j)*((1-pi)**(n-j))*max(0,(u**j)*(d**(n-j))*S - k)
+
+#final price of a bin option calculated 
+        call_cost = (1/(r0**n))*call_cost 
+        return(call_cost)
+    else: 
+        return("Arbitrage is possible")
+
+
+
+print(bin_call_price(10,0.3,20,20, 0.06))
+
+
+def black_scholes_call(S0, K, r, sigma, t):
+    d1 = (np.log(S0/K) + (r + (sigma**2)/2)*t)/(sigma*np.sqrt(t))
+    d2 = d1 - sigma*np.sqrt(t)
+    
+    call = S0*norm.cdf(d1) - K*np.exp(-t*r)*norm.cdf(d2)
+ 
+    return call
+
+
+
+###################################################################################################################
+#plot binomal price as n steps increase compared to the BS price
+ypoints = np.array([])
+xpoints = np.array([])
+
+for i in range(1,102):
+    ypoints = np.append(ypoints, bin_call_price(i,0.5,20,20,0.06)) 
+    xpoints = np.append(xpoints, i)
+
+plt.plot(xpoints, ypoints, label = "Binomial Model price")
+bs_value = black_scholes_call(20,20,0.06, 0.5, 1) 
+
+plt.axhline(y = bs_value, color = "r" , linestyle = "dotted", label = "Black-Scholes price")
+
+plt.show()
+
+###################################################################################################################
+
+#plot the normal dist and bin dist to demonstrate visual convergence and steps reduce in size 
+
+
+counter = np.array([])
+ypoints2 = np.array([])
+
+for j in range(1,1001):
+    counter = np.append(counter, math.comb(1001,j)*(0.5**j)*(1-0.5)**j)
+    ypoints2 = np.append(ypoints2,j)
+
+
+plt.xlim(150,250)
+
+plt.scatter(y = counter , x = ypoints2, label = "Binomal Distribution convergence to the Normal Distribution")  
+
+
+
+
+x = np.linspace(-4, 4, 1000)
+plt.plot(x, norm.pdf(x), 'b-', label='Normal Distribution')
+plt.xlabel('X')
+plt.ylabel('Probability Density')
+plt.legend()
+
+plt.show()
+
+    
