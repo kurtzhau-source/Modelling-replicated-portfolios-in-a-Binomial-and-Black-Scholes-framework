@@ -37,6 +37,11 @@ $$
 - Black-Scholes hedge rebalanced at the same frequency for fair comparison
 
 ## Results
+
+<img width="642" height="453" alt="image" src="https://github.com/user-attachments/assets/1c909ac5-6ec4-49e8-9ec9-5690f42dbcb6" />
+<img width="608" height="454" alt="image" src="https://github.com/user-attachments/assets/365951d2-ac7f-41be-8d9d-f59f7d4d8ef5" />
+
+
 - At expiry, both portfolios match the option payoff.
 - The binomial hedge exhibits small tracking error relative to Black-Scholes over the option's life.
 - As the number of rebalancing steps increases, the binomial hedge converges to the Black-Scholes hedge.
