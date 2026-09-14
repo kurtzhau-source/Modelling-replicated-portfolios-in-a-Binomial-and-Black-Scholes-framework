@@ -40,6 +40,8 @@ $$
 
 <img width="642" height="453" alt="image" src="https://github.com/user-attachments/assets/1c909ac5-6ec4-49e8-9ec9-5690f42dbcb6" />
 <img width="608" height="454" alt="image" src="https://github.com/user-attachments/assets/365951d2-ac7f-41be-8d9d-f59f7d4d8ef5" />
+<img width="619" height="469" alt="image" src="https://github.com/user-attachments/assets/85642337-746d-4e03-b768-e2052cdee25b" />
+<img width="595" height="454" alt="image" src="https://github.com/user-attachments/assets/152e15d8-46d3-49a0-99b0-b50f760e5c94" />
 
 
 - At expiry, both portfolios match the option payoff.
