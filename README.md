@@ -44,5 +44,3 @@ $$
 ## Conclusion
 The binomial replicating portfolio provides a good discrete approximation to the Black-Scholes portfolio. The approximation error decreases with finer time discretisation, confirming the theoretical convergence of the binomial model to Black-Scholes.
 
-## Code
-Full implementation and figures: [github.com/yourname/option-replication](https://github.com/yourname/option-replication)
