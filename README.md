@@ -49,5 +49,5 @@ $$
 - As the number of rebalancing steps increases, the binomial hedge converges to the Black-Scholes hedge.
 
 ## Conclusion
-The binomial replicating portfolio provides a good discrete approximation to the Black-Scholes portfolio. The approximation error decreases with finer time discretisation, confirming the theoretical convergence of the binomial model to Black-Scholes.
+The binomial replicating portfolio provides a good discrete approximation to the Black-Scholes portfolio. The approximation error decreases with over time, confirming the theoretical convergence of the binomial model to Black-Scholes.
 
