@@ -1,52 +1,58 @@
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.stats import norm 
-import seaborn as sns
+from scipy.stats import norm
 from numpy import random
 
 def cox_call_up(n,vol):
     u = np.exp(vol*(np.sqrt(1/n)))
     return(u)
-    
-def cox_call_down(n,vol): 
+
+def cox_call_down(n,vol):
     d = np.exp(-1*vol*(np.sqrt(1/n)))
-    return(d) 
+    return(d)
 
 
-    
+def d1(S0, K, r, sigma, t):
+    d1 = (np.log(S0/K) + (r + (sigma**2)/2)*t)/(sigma*np.sqrt(t))
+    return d1
+
+def d2(S0, K,r ,sigma, t):
+  d1 = (np.log(S0/K) + (r + (sigma**2)/2)*t)/(sigma*np.sqrt(t))
+  d2 = d1 - sigma*np.sqrt(t)
+  return d2
 
 def bin_call_price(n,vol,S,k,r):
 
-# n : number of timesteps in time t 
+# n : number of timesteps in time t
 # u : upwards weight
 # d : downwards weight
-# S : stock price 
-# r : interest rate 
+# S : stock price
+# r : interest rate
 
 
 #call cost
     call_cost = 0
 
-#discount the interest rate for the current time 
-    r0 = 1+ r/n  
-#using Cox's proposals calculate u and d based off of vol 
+#discount the interest rate for the current time
+    r0 = np.exp(r/n)
+#using Cox's proposals calculate u and d based off of vol
 
     u = cox_call_up(n,vol)
     d = cox_call_down(n,vol)
 
 #check for no arbitrage constraints
     if 0 < d < r0 < u:
-    #calculate probability weights 
+    #calculate probability weights
         pi = pi = (r0 - d)/(u-d)
-#compute sum 
-        for j in range(0,n+1): 
+#compute sum
+        for j in range(0,n+1):
             call_cost  = call_cost + math.comb(n,j)*(pi**j)*((1-pi)**(n-j))*max(0,(u**j)*(d**(n-j))*S - k)
 
-#final price of a bin option calculated 
-        call_cost = (1/(r0**n))*call_cost 
+#final price of a bin option calculated
+        call_cost = (1/(r0**n))*call_cost
         return(call_cost)
-    else: 
+    else:
         return("Arbitrage is possible")
 
 
@@ -57,178 +63,334 @@ print(bin_call_price(10,0.3,20,20, 0.06))
 def black_scholes_call(S0, K, r, sigma, t):
     d1 = (np.log(S0/K) + (r + (sigma**2)/2)*t)/(sigma*np.sqrt(t))
     d2 = d1 - sigma*np.sqrt(t)
-    
+
     call = S0*norm.cdf(d1) - K*np.exp(-t*r)*norm.cdf(d2)
- 
+
     return call
 
-
-
-###################################################################################################################
-#plot binomal price as n steps increase compared to the BS price
-ypoints = np.array([])
-xpoints = np.array([])
-
-for i in range(1,102):
-    ypoints = np.append(ypoints, bin_call_price(i,0.5,20,20,0.06)) 
-    xpoints = np.append(xpoints, i)
-
-plt.plot(xpoints, ypoints, label = "Binomial Model price")
-bs_value = black_scholes_call(20,20,0.06, 0.5, 1) 
-
-plt.axhline(y = bs_value, color = "r" , linestyle = "dotted", label = "Black-Scholes price")
-plt.legend([" Black Scholes option price", "Binomial Option price"]) 
-plt.show()
-
-###################################################################################################################
-
-#plot the normal dist and bin dist to demonstrate visual convergence and steps reduce in size 
-
-
-counter = np.array([])
-ypoints2 = np.array([])
-
-for j in range(1,1001):
-    counter = np.append(counter, math.comb(1001,j)*(0.5**j)*(1-0.5)**j)
-    ypoints2 = np.append(ypoints2,j)
-
-
-plt.xlim(150,250)
-
-plt.scatter(y = counter , x = ypoints2)  
-
-
-x = np.linspace(-4, 4, 1000)
-plt.plot(x, norm.pdf(x), 'b-',)
-
-plt.show()
-
-x = np.linspace(-4, 4, 1000)
-plt.plot(x, norm.pdf(x), 'b-', label='Normal Distribution')
-
-plt.show()
-
-
 #Now lets compute our self replicating portfolio
-#we need to compute delta and B  
+#we need to compute delta and B
 
 
 
 
 def bin_call_price_port(n,vol,S,k,r0,u,d):
 
-# n : number of timesteps in time t 
+# n : number of timesteps in time t
 # u : upwards weight
 # d : downwards weight
-# S : stock price 
-# r : interest rate 
+# S : stock price
+# r : interest rate
 
 
 #call cost
     call_cost = 0
 
-#discount the interest rate for the current time 
-    
-#using Cox's proposals calculate u and d based off of vol 
+#discount the interest rate for the current time
+
+#using Cox's proposals calculate u and d based off of vol
 
 #check for no arbitrage constraints
     if 0 < d < r0 < u:
-    #calculate probability weights 
+    #calculate probability weights
         pi = (r0 - d)/(u-d)
-#compute sum 
-        for j in range(0,n+1): 
+#compute sum
+        for j in range(0,n+1):
             call_cost  = call_cost + math.comb(n,j)*(pi**j)*((1-pi)**(n-j))*max(0,(u**j)*(d**(n-j))*S - k)
 
-#final price of a bin option calculated 
-        call_cost = (1/(r0**n))*call_cost 
+#final price of a bin option calculated
+        call_cost = (1/(r0**n))*call_cost
         return(call_cost)
-    else: 
+    else:
         return("Arbitrage is possible")
 
 
 
-def stock_amount(n,vol, S, k, r0,u,d):  
+def stock_amount(n,vol, S, k, r0,u,d):
     sum = 0
-   
-    crash_prevent = (u -d) *S 
+
+    crash_prevent = (u -d) *S
     if math.isclose(crash_prevent, 0) == True:
         return(0)
-    sum = (((u-d)*S)**(-1)) * ( bin_call_price_port(n-1,vol,u*S,k,r0,u,d) - bin_call_price_port(n-1,vol,d*S,k,r0,u,d) ) 
+    sum = (((u-d)*S)**(-1)) * ( bin_call_price_port(n-1,vol,u*S,k,r0,u,d) - bin_call_price_port(n-1,vol,d*S,k,r0,u,d) )
     return(sum)
 
-def amount_cash_bond(n,vol, S, k, r0,u,d): 
-    total = 0 
-    total = ((r0*(u-d))**(-1)) * ( u*bin_call_price_port(n-1,vol,d*S,k,r0,u,d) -  d*bin_call_price_port(n-1,vol,u*S,k,r0,u,d)) 
-    return(total) 
+def amount_cash_bond(n,vol, S, k, r0,u,d):
+    total = 0
+    total = ((r0*(u-d))**(-1)) * ( u*bin_call_price_port(n-1,vol,d*S,k,r0,u,d) -  d*bin_call_price_port(n-1,vol,u*S,k,r0,u,d))
+    return(total)
 
 
-
-#now we want to simulate binomial motion and simulate someone buying a call and you hedging it 
+#now we want to simulate binomial motion and simulate someone buying a call and you hedging it
 
 #initalise our constants
-n = 50
-K = 5
+n = 252
+K = 7
 S=7
-r0 = np.exp(0.06/n) 
+r0 = np.exp(0.06/n)
 vol = 0.5
 u = cox_call_up(n,vol)
 d = cox_call_down(n,vol)
 
-#initalise our arrays 
+#initalise our arrays
 stock_price_ot = np.array([S])
 hedged_stock = np.array([])
 bond_position = np.array([])
 port_value = np.array([])
-bin_call_value = np.array([]) 
+bin_call_value = np.array([])
 value_difference = np.array([])
 
-
-#port = stock_price_ot[i]*stock + bond
-
-
-stock = stock_amount(n,0.5, stock_price_ot[0], K , r0,u,d) 
-bond = amount_cash_bond(n,0.5, stock_price_ot[0], K , r0,u,d)
+pi = (r0 - d)/(u-d)
 
 
-#compute the purchasing of stock and borrowing of cash bond 
-for i in range(0,n):  
 
-    #simulate bin walk by factor u and d 
-    if random.uniform(0,1) <=  0.49 or stock_price_ot[i] == 0:
-        stock_price_ot = np.append(stock_price_ot, stock_price_ot[i]*u ) 
-    else: 
-        stock_price_ot = np.append(stock_price_ot, stock_price_ot[i] *d )
 
-    port_now = stock_price_ot[i+1]*stock + bond*r0
+
+#compute the purchasing of stock and borrowing of cash bond
+for i in range(n):
+
 
     #counting steps left
-    steps_left = n - (i + 1)
+    steps_left = n - (i)
 
-    #check there are
-    if steps_left > 0:
-    # Option payoff boundary at expiration 
-        current_call_val = bin_call_price_port(steps_left, vol, stock_price_ot[i+1], K, r0, u, d)
-        stock = stock_amount(steps_left, vol, stock_price_ot[i+1], K, r0, u, d)
-        bond = amount_cash_bond(steps_left, vol, stock_price_ot[i+1], K, r0, u, d)
-        
-    else:
-        # Expiration payoff 
-        current_call_val = max(0, stock_price_ot[i+1] - K)
-        stock = 1.0 if stock_price_ot[i+1] > K else 0.0
-        bond = -float(K) if stock_price_ot[i+1] > K else 0.0
-    
+    current_call_val = bin_call_price_port(steps_left, vol, stock_price_ot[i], K, r0, u, d)
+    stock = stock_amount(steps_left, vol, stock_price_ot[i], K, r0, u, d)
+    bond = amount_cash_bond(steps_left, vol, stock_price_ot[i], K, r0, u, d)
 
-    port_value = np.append(port_value, port_now) 
+    port_now = stock_price_ot[i]*stock + bond
+    port_value = np.append(port_value, port_now)
     hedged_stock = np.append( hedged_stock, stock )
     bond_position = np.append(bond_position, bond)
     bin_call_value = np.append(bin_call_value, current_call_val)
     value_difference = np.append(value_difference, current_call_val - port_now)
 
-plt.plot(range(0,n +1 ),stock_price_ot , label = "blue") 
-plt.plot(range(1,n +1),hedged_stock , color = "red") 
-plt.plot(range(1,n +1),bond_position, color = "orange") 
-plt.plot(range(1,n +1),port_value, color = "green") 
-plt.legend(["Stock Price" , " Stock Position" ,  "Bond Position", "Portfolio Value"])
+     #simulate bin walk by factor u and d
+    if random.uniform(0,1) <= pi  or stock_price_ot[i] == 0:
+        stock_price_ot = np.append(stock_price_ot, stock_price_ot[i]*u )
+    else:
+        stock_price_ot = np.append(stock_price_ot, stock_price_ot[i] *d )
+
+
+
+
+
+# Expiration payoff
+current_call_val = max(0, stock_price_ot[n] - K)
+stock = 1.0 if stock_price_ot[n] > K else 0.0
+bond = -float(K) if stock_price_ot[n] > K else 0.0
+
+port_now = stock_price_ot[n]*stock + bond
+port_value = np.append(port_value, port_now)
+hedged_stock = np.append( hedged_stock, stock )
+bond_position = np.append(bond_position, bond)
+
+bin_call_value = np.append(bin_call_value, current_call_val)
+value_difference = np.append(value_difference, current_call_val - port_now)
+
+
+
+plt.plot(range(0,n +1 ),stock_price_ot , label = "blue")
+plt.plot(range(0,n +1),hedged_stock , color = "red")
+plt.plot(range(0,n +1),bond_position, color = "orange")
+plt.plot(range(0,n +1),port_value, color = "green")
+plt.axhline(y = K, color = "r" , linestyle = "dotted",)
+plt.legend(["Stock Price" , " Stock held" ,  "Bond Position", "Portfolio Value", "Strike Price"])
+plt.ylabel("Units")
+plt.xlabel("Time steps")
+plt.title("Modelling the replicated portfolio of an option")
 plt.show()
 
-        
+print("Value of the call at time 0",bin_call_value[0])
+print("Value of the call at the end" ,bin_call_value[n])
+print("port value at time 0" ,port_value[0])
+print("Port value at the end",port_value[n])
+print("Profit without taking into account the call price", stock_price_ot[n] - K)
+print("Stock price", stock_price_ot[n])
+
+
+plt.plot(value_difference)
+plt.show()
+
+
+
+#Simulate Brownian motion
+T = 1 ; N = 10000 ; dt = T/N
+
+
+#simulate the stock now, assume no drift, with interest
+BS_S = np.zeros(N+1)
+
+
+i=0
+vol=0.5
+r = 0.06
+BS_S[0] = 7
+for i in range(1,N+1):
+  Z = random.normal(0,1)
+  BS_S[i] = BS_S[i-1] * np.exp((r - 0.5 * vol**2) * dt + vol * np.sqrt(dt) * Z)
+
+
+plt.plot(BS_S)
+plt.show()
+
+
+
+BS_stock_amount = np.zeros(N+1)
+BS_bond_amount = np.zeros(N+1)
+discrete_stock= np.zeros(N+1)
+BS_port = np.zeros(N+1)
+BS_call =np.zeros(N+1)
+BS_diff = np.zeros(N+1)
+
+
+
+
+
+r = 0.06
+# r0 = np.exp(r/N) # This r0 was not properly used in the previous BS_bond_amount line, removing it to avoid confusion.
+i=0
+vol = 0.5
+#compute the purchasing of stock and borrowing of cash bond
+for i in range(0,N+1):
+
+    #counting steps left
+    BS_steps_left = 1 - i/(N)
+
+    # If time to expiry is effectively zero, use intrinsic value
+    if BS_steps_left <= 1e-9: # Use a small epsilon to catch near-zero time
+        BS_call_val_at_i = max(0, BS_S[i] - K)
+        BS_stock_amount[i] = 1.0 if BS_S[i] > K else 0.0
+        BS_bond_amount[i] = -float(K) if BS_S[i] > K else 0.0
+    else:
+        # Calculate delta (stock amount)
+        BS_stock_amount[i] =  norm.cdf(d1(BS_S[i], K, r, vol, BS_steps_left))
+        # Calculate the cash component (bond amount) of the Black-Scholes price
+        BS_bond_amount[i] =  -K * np.exp(-r * BS_steps_left) * norm.cdf(d2(BS_S[i], K, r, vol, BS_steps_left))
+        BS_call_val_at_i = black_scholes_call(BS_S[i], K, r, vol, BS_steps_left)
+
+    # The portfolio value should ideally equal the option price if perfectly hedged
+    BS_port[i] = BS_S[i]*BS_stock_amount[i] + BS_bond_amount[i]
+    BS_call[i] =  BS_call_val_at_i # Assign the calculated call value
+
+    #raw difference
+    BS_diff[i] =  BS_port[i] - BS_call[i]
+
+
+time = np.linspace(0, 252, N+1)
+
+plt.plot(time, BS_stock_amount, color = "red")
+plt.plot(time, BS_bond_amount, color = "orange")
+plt.plot(time, BS_port, color = "green")
+plt.plot(time, BS_S, color = "blue")
+plt.title("Black Scholes replicated portfolio")
+plt.axhline(y=K, color="r", linestyle="dotted")
+plt.legend(["Stock amount", "Bond amount", "Port value", "Stock price", "Strike Price"])
+plt.xlabel("Time")
+plt.ylabel("Units")
+plt.show()
+
+n = 252
+K = 7
+S=7
+r0 = np.exp(0.06/n)
+vol = 0.5
+u = cox_call_up(n,vol)
+d = cox_call_down(n,vol)
+
+#collect stock values for discrete data
+divide = np.linspace(0, len(BS_S) -1 , n+1).astype(int)
+discrete_stock = BS_S[divide]
+
+
+
+#initalise our arrays
+stock_price_ot = np.array([S])
+hedged_stock = np.array([])
+bond_position = np.array([])
+port_value = np.array([])
+bin_call_value = np.array([])
+value_difference = np.array([])
+BS_bin_per_error = np.zeros(n+1)
+BS_bin_raw_error = np.zeros(n+1)
+BS_theory_call = np.zeros(n+1)
+
+
+
+
+
+i=0
+#compute the purchasing of stock and borrowing of cash bond
+for i in range(0,n):
+
+    #counting steps left
+    steps_left = n - (i )
+    time_to_expiry_bs = (n - i)/n
+
+
+    current_call_val = bin_call_price_port(steps_left, vol, discrete_stock[i], K, r0, u, d)
+    stock = stock_amount(steps_left, vol, discrete_stock[i], K, r0, u, d)
+    bond = amount_cash_bond(steps_left, vol, discrete_stock[i], K, r0, u, d)
+    BS_theory_call[i] = black_scholes_call(discrete_stock[i], K, 0.06, 0.5, time_to_expiry_bs)
+    port_now = discrete_stock[i]*stock + bond
+
+
+    #update arrays
+    port_value = np.append(port_value, port_now)
+    hedged_stock = np.append( hedged_stock, stock )
+    bond_position = np.append(bond_position, bond)
+    bin_call_value = np.append(bin_call_value, current_call_val)
+    value_difference = np.append(value_difference, abs(current_call_val - port_now))
+
+
+
+
+
+#update at expiry
+# Expiration payoff
+current_call_val = max(0, discrete_stock[n] - K)
+stock = 1.0 if discrete_stock[n] > K else 0.0
+bond = -float(K) if discrete_stock[n] > K else 0.0
+BS_theory_call[n] = max(0, discrete_stock[n] - K) # At expiry, BS value is intrinsic value
+port_now = discrete_stock[n]*stock + bond
+#update arrays
+port_value = np.append(port_value, port_now)
+hedged_stock = np.append( hedged_stock, stock )
+bond_position = np.append(bond_position, bond)
+bin_call_value = np.append(bin_call_value, current_call_val)
+value_difference = np.append(value_difference, current_call_val - port_now)
+
+#compute relative error
+i =0
+for i in range(n+1):
+      BS_bin_raw_error[i] = abs(BS_theory_call[i] - bin_call_value[i])
+      if BS_theory_call[i] == 0:
+        BS_bin_per_error[i] = 0.0 # Avoid division by zero if theoretical value is 0
+      else:
+        BS_bin_per_error[i] = abs(BS_bin_raw_error[i]/BS_theory_call[i])
+
+
+plt.plot(range(0,n +1 ),discrete_stock , label = "blue")
+plt.plot(range(0,n +1),hedged_stock , color = "red")
+plt.plot(range(0,n +1),bond_position, color = "orange")
+plt.plot(range(0,n +1),port_value, color = "green")
+plt.plot(range(0,n+1), BS_theory_call, color = "black", linestyle = "dotted")
+plt.axhline(y = K, color = "r" , linestyle = "dotted",)
+plt.legend(["Stock Price" , " Stock held" ,  "Bond Position", "Portfolio Value", "Theoretical value", "Strike Price"])
+plt.ylabel("Units")
+plt.xlabel("Time steps")
+plt.title("Binomial model applied to a continuous stock model")
+plt.show()
+
+print("Value computed at expiry", port_value[n])
+print("Theoretical value at expiry", BS_theory_call[n] )
+print("Call profit at expiry", discrete_stock[n]- K)
+
+
+
+
+
+
+
+
+
+
