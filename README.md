@@ -47,7 +47,7 @@ $$
 
 - At expiry, both portfolios match the option payoff.
 - The binomial hedge exhibits small tracking error relative to Black-Scholes over the option's life.
-- When S > K the binomial hedge converges to the Black-Scholes hedge.
+- As the number of steps increase the binomial hedge converges to the Black-Scholes hedge.
 
 ## Conclusion
 The binomial replicating portfolio provides a good discrete approximation to the Black-Scholes portfolio. The approximation error decreases with over time, confirming the theoretical convergence of the binomial model to Black-Scholes.
