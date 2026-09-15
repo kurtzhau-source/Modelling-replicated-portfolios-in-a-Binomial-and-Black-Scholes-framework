@@ -208,8 +208,6 @@ print("Profit without taking into account the call price", stock_price_ot[n] - K
 print("Stock price", stock_price_ot[n])
 
 
-plt.plot(value_difference)
-plt.show()
 
 
 
@@ -247,7 +245,7 @@ BS_diff = np.zeros(N+1)
 
 
 r = 0.06
-# r0 = np.exp(r/N) # This r0 was not properly used in the previous BS_bond_amount line, removing it to avoid confusion.
+# r0 = np.exp(r/N) 
 i=0
 vol = 0.5
 #compute the purchasing of stock and borrowing of cash bond
@@ -359,15 +357,11 @@ bond_position = np.append(bond_position, bond)
 bin_call_value = np.append(bin_call_value, current_call_val)
 value_difference = np.append(value_difference, current_call_val - port_now)
 
-#compute relative error
+#compute absoulte error
 i =0
 for i in range(n+1):
       BS_bin_raw_error[i] = abs(BS_theory_call[i] - bin_call_value[i])
-      if BS_theory_call[i] == 0:
-        BS_bin_per_error[i] = 0.0 # Avoid division by zero if theoretical value is 0
-      else:
-        BS_bin_per_error[i] = abs(BS_bin_raw_error[i]/BS_theory_call[i])
-
+     
 
 plt.plot(range(0,n +1 ),discrete_stock , label = "blue")
 plt.plot(range(0,n +1),hedged_stock , color = "red")
@@ -387,7 +381,12 @@ print("Call profit at expiry", discrete_stock[n]- K)
 
 
 
-
+plt.plot(BS_bin_raw_error)
+plt.title("Absoulte error between the Binomial and Black-Scholes model")
+plt.legend(["Binomial error from Black Scholes"])
+plt.ylabel("Error") 
+plt.xlabel("Time steps")
+plt.show()
 
 
 
