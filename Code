@@ -44,7 +44,7 @@ def bin_call_price(n,vol,S,k,r):
 #check for no arbitrage constraints
     if 0 < d < r0 < u:
     #calculate probability weights
-        pi = pi = (r0 - d)/(u-d)
+        pi = (r0 - d)/(u-d)
 #compute sum
         for j in range(0,n+1):
             call_cost  = call_cost + math.comb(n,j)*(pi**j)*((1-pi)**(n-j))*max(0,(u**j)*(d**(n-j))*S - k)
@@ -382,9 +382,9 @@ print("Call profit at expiry", discrete_stock[n]- K)
 
 
 plt.plot(BS_bin_raw_error)
-plt.title("Absoulte error between the Binomial and Black-Scholes model")
+plt.title("Absoulte pricing difference between the Binomial and Black-Scholes model")
 plt.legend(["Binomial error from Black Scholes"])
-plt.ylabel("Error") 
+plt.ylabel("Pounds (£)") 
 plt.xlabel("Time steps")
 plt.show()
 
